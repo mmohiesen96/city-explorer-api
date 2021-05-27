@@ -15,12 +15,13 @@ const WEATHER_URL = process.env.WEATHER_API_KEY;
 const MOVIE_URL = process.env.MOVIE_API_KEY;
 server.get('/weather', (req, res) => {
     let searchQuery = req.query.searchQuery;
-    const requestUrl = `https://api.weatherbit.io/v2.0/forecast/daily?city=${searchQuery}&key=${WEATHER_URL}`;
+    const requestUrl = `https://api.weatherbit.io/v2.0/forecast/daily?city=${searchQuery}&key=${WEATHER_URL}&days=4`;
+    // https://api.weatherbit.io/v2.0/forecast/daily?city=Raleigh,NC&key=7aef00feafbc4adbbdd57eeaacf0a8f7&days=4
     ax
         .get(requestUrl)
         .then(conc => {
             const weatherArr = conc.data.data.map(cityItem => {
-                return new foreCast(cityItem);
+                return new Forecast(cityItem);
             })
             res.send(weatherArr)
         })
@@ -52,7 +53,7 @@ server.get('/', (req, res) => {
 server.get('*', (req, res) => {
     res.status(500).send('Bad Request');
 })
-class foreCast {
+class Forecast {
     constructor(day) {
         this.date = day.valid_date;
         this.description = `Low of ${day.low_temp}, high of ${day.max_temp} with ${day.weather.description}`;
