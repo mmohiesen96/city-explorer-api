@@ -1,27 +1,40 @@
 
 const ax = require('axios');
-module.exports = getMovie; 
+module.exports = getMovie;
 
 
 
+let movieMemory = {};
 
 
-function getMovie(req, res) {
-    let searchQuery = req.query.searchQuery;
-    const requestUrl = `http://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${searchQuery}&page=1`;
-    ax
-        .get(requestUrl)
-        .then(conc => {
-            const movieArr = conc.data.results.map((movieItem , idx) => {
-                return new Movie(movieItem);
-            })
-            res.send(movieArr)
-        })
+    
+    function getMovie(req, res) {
+        let searchQuery = req.query.searchQuery;
+        const requestUrl = `http://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${searchQuery}&page=1`;
+        if (movieMemory[searchQuery] !== undefined) {
+            res.send(movieMemory[searchQuery]);
+            console.log('from memory');
+        }
+        else {
+            ax
+                .get(requestUrl)
+                .then(conc => {
+                    const movieArr = conc.data.results.map((movieItem, idx) => {
+                        return new Movie(movieItem);
+                    })
+                    movieMemory[searchQuery] = movieArr;
+                    console.log('from api');
+                    res.send(movieArr)
+                })
+    
+                .catch(err => {
+                    res.status(500).send('Sorry an error occured with retrieving searchQuery ' + err)
+                })
 
-        .catch(err => {
-            res.status(500).send('Sorry an error occured with retrieving movies ' + err)
-        })
-}
+        }
+    }
+
+
 
 
 const baseImgUrl = 'https://image.tmdb.org/t/p/w500'
